@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # --- Authentication ---
-CORRECT_PASSWORD = "hello"
+CORRECT_PASSWORD = "DHLdhl11!!"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False

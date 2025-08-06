@@ -43,14 +43,14 @@ else:
 
     # Labor multipliers from Excel
     hours_per_unit = {
-        "Receiving": 0.025,          # 12.5 / 500
-        "Case Picking": 0.00769,     # 76.9 / 10000
-        "Putaway": 0.0527,           # 23.2 / 440
-        "Replenishment": 0.0667,     # 6.0 / 90
-        "Full Pallet": 0.05,         # 11.5 / 230
-        "Loading": 0.0167,           # 8.0 / 480
-        "Layer Picking": 0.004,      # 10.0 / 2500
-        "Unloading": 0.0126          # 5.4 / 430
+        "Receiving": 0.0252,         # 6.3 / 250
+        "Case Picking": 0.00667,     # 66 / 9900
+        "Putaway": 0.05273,          # 11.6 / 220
+        "Replenishment": 0.06667,    # 4.0 / 60
+        "Full Pallet": 0.05,         # 11 / 220
+        "Loading": 0.025,            # 12 / 480
+        "Layer Picking": 0.004,      # 10 / 2500
+        "Unloading": 0.02507         # 9.4 / 375
     }
 
     # Predict labor

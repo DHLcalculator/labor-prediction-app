@@ -97,18 +97,21 @@ else:
             if expected_ot_fte > 0:
                 st.warning(f"⚠️ You may need **{round(expected_ot_fte, 2)}** overtime FTEs.")
 
-                # Calculate hours needed for each function
-                productive_hours_per_shift = 6.8  # change if different
-                ot_hours_by_function = [round(f * productive_hours_per_shift, 2) for f in ftes]
+                productive_hours_per_shift = 6.8  # Change if your shift hours differ
 
-                # Show breakdown
-                breakdown_df = pd.DataFrame({
-                    "Function": [col for col, _ in volume_columns],
-                    "Overtime Hours Needed": ot_hours_by_function
-                })
+                # Calculate overtime hours only for functions that exceed threshold
+                ot_hours_by_function = []
+                for func, f in zip(target_columns, ftes):
+                    func_hours = round(f * productive_hours_per_shift, 2)
+                    if func_hours > 0:
+                        ot_hours_by_function.append((func, func_hours))
 
-                st.subheader("📋 Overtime Hours Breakdown by Function")
-                st.dataframe(breakdown_df, use_container_width=True)
+                if ot_hours_by_function:
+                    breakdown_df = pd.DataFrame(ot_hours_by_function, columns=["Function", "Overtime Hours Needed"])
+                    st.subheader("📋 Overtime Hours Breakdown")
+                    st.dataframe(breakdown_df, use_container_width=True)
+                else:
+                    st.success("✅ No overtime hours needed for any specific function.")
 
             else:
                 st.success("✅ No overtime workers needed based on this input.")

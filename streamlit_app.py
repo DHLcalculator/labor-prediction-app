@@ -81,17 +81,35 @@ else:
         fig = px.bar(chart_df, x="Function", y="FTE", color="Function", title="FTE by Function")
         st.plotly_chart(fig, use_container_width=True)
 
-    # Overtime Estimation
+    # --- Overtime Estimation ---
     st.markdown("---")
     st.markdown("### 🕒 Overtime Estimation")
     ot_threshold = st.number_input("Enter FTE Threshold (e.g., 40):", min_value=0.0, value=40.0)
 
     if st.button("Estimate Overtime Workers"):
-        if "total_fte" in st.session_state:
-            expected_ot = max(0, st.session_state.total_fte - ot_threshold)
-            if expected_ot > 0:
-                st.warning(f"⚠️ You may need **{round(expected_ot, 2)}** overtime FTEs.")
+        if "total_fte" in st.session_state and "last_prediction" in st.session_state:
+            total_fte = st.session_state.total_fte
+            hours, ftes = st.session_state.last_prediction
+
+            expected_ot_fte = max(0, total_fte - ot_threshold)
+        
+            if expected_ot_fte > 0:
+                st.warning(f"⚠️ You may need **{round(expected_ot_fte, 2)}** overtime FTEs.")
+
+                # Calculate hours needed for each function
+                productive_hours_per_shift = 6.8  # change if different
+                ot_hours_by_function = [round(f * productive_hours_per_shift, 2) for f in ftes]
+
+                # Show breakdown
+                breakdown_df = pd.DataFrame({
+                    "Function": [col for col, _ in volume_columns],
+                    "Overtime Hours Needed": ot_hours_by_function
+                })
+
+                st.subheader("📋 Overtime Hours Breakdown by Function")
+                st.dataframe(breakdown_df, use_container_width=True)
+
             else:
-                st.success("✅ No overtime workers needed.")
+                st.success("✅ No overtime workers needed based on this input.")
         else:
             st.info("ℹ️ Please run a prediction first.")

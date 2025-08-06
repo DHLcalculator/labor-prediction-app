@@ -71,7 +71,7 @@ else:
         summary_df = pd.DataFrame({
             "Function": [col for col, _ in volume_columns],
             "Labor Hours": [round(h, 2) for h in hours],
-            "FTE": [round(f, 0) for f in ftes]
+            "FTE": [round(f, 2) for f in ftes]
         })
         summary_df.loc["Total"] = ["Total", total_hours, total_fte]
         st.dataframe(summary_df, use_container_width=True)

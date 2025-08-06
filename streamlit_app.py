@@ -66,6 +66,7 @@ else:
         total_hours = round(sum(hours), 2)
         total_fte = round(sum(ftes), 2)
         st.session_state.total_fte = total_fte
+        st.session_state.last_prediction = (hours, ftes) 
 
         st.subheader("📋 Prediction Summary Table")
         summary_df = pd.DataFrame({

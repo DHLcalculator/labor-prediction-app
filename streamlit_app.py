@@ -41,7 +41,7 @@ else:
         val = st.number_input(f"{col} Volume ({unit})", min_value=0, value=0)
         volumes.append(val)
 
-    # Labor multipliers from Excel photo
+    # Labor multipliers from Excel
     hours_per_unit = {
         "Receiving": 0.025,          # 12.5 / 500
         "Case Picking": 0.00769,     # 76.9 / 10000
@@ -71,7 +71,7 @@ else:
         summary_df = pd.DataFrame({
             "Function": [col for col, _ in volume_columns],
             "Labor Hours": [round(h, 2) for h in hours],
-            "FTE": [int(round(f, 0)) for f in ftes]
+            "FTE": [round(f, 0) for f in ftes]
         })
         summary_df.loc["Total"] = ["Total", total_hours, total_fte]
         st.dataframe(summary_df, use_container_width=True)

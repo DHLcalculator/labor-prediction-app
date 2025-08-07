@@ -2,109 +2,107 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# ---------------------- AUTHENTICATION ----------------------
-PASSWORD = "DHLdhl11!!"
-user_password = st.text_input("Enter password to access the labor calculator:", type="password")
-if user_password != PASSWORD:
-    st.warning("Incorrect password. Access denied.")
-    st.stop()
+# --- Authentication ---
+CORRECT_PASSWORD = "DHLdhl11!!"
 
-st.title("Labor Prediction & Overtime Estimator")
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-# ---------------------- USER INPUTS ----------------------
-st.header("Enter Volume by Function")
-
-# Dictionary for entering volume by function
-volume_inputs = {}
-functions = [
-    "Unloading",
-    "Receiving",
-    "Putaway",
-    "Case Picking",
-    "Full Pallet",
-    "Layer Picking",
-    "Loading",
-    "Replenishment"
-]
-
-for function in functions:
-    volume_inputs[function] = st.number_input(f"{function} Volume", min_value=0, value=0)
-
-# ---------------------- PRODUCTIVE HOURS PER SHIFT ----------------------
-# Assuming 7.0 productive hours in a shift (can be adjusted later)
-productive_hours_per_day = 7.0
-
-# ---------------------- HOURS PER UNIT (BASED ON OPERATIONAL STUDY) ----------------------
-# These are estimated labor standards or historical productivity rates.
-# Format: "Function": hours_required / units_handled
-hours_per_unit = {
-    "Unloading": 6.3 / 250,          # 0.0252 hrs/pallet
-    "Receiving": 6.3 / 250,          # 0.0252 hrs/pallet
-    "Putaway": 15.8 / 300,           # 0.0527 hrs/pallet
-    "Case Picking": 66 / 9900,       # 0.00667 hrs/case
-    "Full Pallet": 11 / 220,         # 0.05 hrs/pallet
-    "Layer Picking": 10 / 2500,      # 0.004 hrs/case
-    "Loading": 12 / 480,             # 0.025 hrs/pallet
-    "Replenishment": 4.0 / 60        # 0.0667 hrs/pallet
-}
-
-# ---------------------- LABOR PREDICTION CALCULATION ----------------------
-results = []
-total_hours = 0
-
-for function in functions:
-    volume = volume_inputs[function]
-    hrs_per_unit = hours_per_unit[function]
-    labor_hours = volume * hrs_per_unit
-    fte_required = labor_hours / productive_hours_per_day
-    total_hours += labor_hours
-
-    results.append({
-        "Function": function,
-        "Volume": volume,
-        "Hours per Unit": round(hrs_per_unit, 5),
-        "Labor Hours": round(labor_hours, 2),
-        "FTE Required": round(fte_required, 2)
-    })
-
-# Convert to DataFrame for display
-df = pd.DataFrame(results)
-
-# ---------------------- TOTAL FTE ----------------------
-total_fte = total_hours / productive_hours_per_day
-st.subheader("Labor Summary")
-st.dataframe(df)
-st.markdown(f"**Total Labor Hours:** {total_hours:.2f}")
-st.markdown(f"**Total FTE Required:** {total_fte:.2f}")
-
-# ---------------------- OVERTIME ESTIMATION ----------------------
-st.header("Overtime Estimation")
-fte_threshold = st.number_input("Enter available daily FTEs before OT is needed", min_value=0.0, value=16.0)
-
-if total_fte > fte_threshold:
-    overtime_hours = (total_fte - fte_threshold) * productive_hours_per_day
-    st.markdown(f"### ⚠️ Overtime Needed: {overtime_hours:.2f} hours")
-
-    # Proportional breakdown by function
-    overtime_breakdown = []
-    for row in df.itertuples():
-        share = row._4 / total_hours  # row._4 = Labor Hours
-        function_ot_hours = share * overtime_hours
-        overtime_breakdown.append({
-            "Function": row.Function,
-            "OT Hours": round(function_ot_hours, 2)
-        })
-
-    df_ot = pd.DataFrame(overtime_breakdown)
-    df_ot.loc[len(df_ot.index)] = ["Total OT", df_ot["OT Hours"].sum()]
-    st.subheader("Overtime by Function")
-    st.dataframe(df_ot)
+if not st.session_state.authenticated:
+    st.title("Welcome to the Labor Prediction Dashboard")
+    password = st.text_input("Enter Password:", type="password")
+    if password == CORRECT_PASSWORD:
+        st.session_state.authenticated = True
+        st.success("Access granted! 🎉")
+        st.rerun()
+    elif password:
+        st.error("Incorrect password. Try again.")
 else:
-    st.success("✅ No overtime needed based on current FTE threshold.")
+    st.title("📊 Labor Prediction Dashboard")
+    st.info("Input volume data to estimate labor hours and FTEs")
 
-# ---------------------- CHART ----------------------
-st.header("FTE by Function")
-fig = px.bar(df, x="Function", y="FTE Required", title="FTE Requirement by Function", text="FTE Required")
-fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
-fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
-st.plotly_chart(fig)
+    # --- Inputs ---
+    day = st.selectbox("Day of Week", ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+    shift = st.selectbox("Shift", ['AM', 'PM'])
+
+    # Reordered functions and units
+    volume_columns = [
+        ("Unloading", "pallets"),
+        ("Receiving", "pallets"),
+        ("Putaway", "pallets"),
+        ("Case Picking", "cases"),
+        ("Full Pallet", "pallets"),
+        ("Layer Picking", "cases"),
+        ("Loading", "pallets"),
+        ("Replenishment", "pallets")
+    ]
+
+    volumes = []
+    for col, unit in volume_columns:
+        val = st.number_input(f"{col} Volume ({unit})", min_value=0, value=0)
+        volumes.append(val)
+
+    # Labor multipliers based on updated data
+    hours_per_unit = {
+        "Unloading": 0.02507,        # 9.4 / 375
+        "Receiving": 0.0252,         # 6.3 / 250
+        "Putaway": 0.05267,          # 15.8 / 300 
+        "Case Picking": 0.00667,     # 66 / 9900
+        "Full Pallet": 0.05,         # 11 / 220
+        "Layer Picking": 0.004,      # 10 / 2500
+        "Loading": 0.025,            # 12 / 480
+        "Replenishment": 0.06667     # 4 / 60
+    }
+
+    # Predict labor
+    def predict_labor_manual(volume_list):
+        labor_hours = []
+        for i, (col, _) in enumerate(volume_columns):
+            hours = volume_list[i] * hours_per_unit[col]
+            labor_hours.append(hours)
+        return labor_hours, [h / 7.0 for h in labor_hours]  # 7.0 = productive hrs per shift
+
+    if st.button("Predict Labor Needs"):
+        hours, ftes = predict_labor_manual(volumes)
+        total_hours = sum(hours)
+        total_fte = sum(ftes)
+        st.session_state.total_fte = total_fte
+        st.session_state.ftes = ftes
+        st.session_state.hours = hours
+
+        st.subheader("📋 Prediction Summary Table")
+        summary_df = pd.DataFrame({
+            "Function": [col for col, _ in volume_columns],
+            "Labor Hours": [round(h, 2) for h in hours],
+            "FTE": [round(f, 2) for f in ftes]
+        })
+        summary_df.loc["Total"] = ["Total", round(total_hours, 2), round(total_fte, 2)]
+        st.dataframe(summary_df, use_container_width=True)
+
+        # FTE Bar Chart
+        chart_df = summary_df[summary_df["Function"] != "Total"]
+        fig = px.bar(chart_df, x="Function", y="FTE", color="Function", title="FTE by Function")
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Overtime Estimation
+    st.markdown("---")
+    st.markdown("### 🕒 Overtime Estimation")
+    ot_threshold = st.number_input("Enter FTE Threshold (e.g., 20):", min_value=0.0, value=16.0)
+
+    if st.button("Estimate Overtime Workers"):
+        if "total_fte" in st.session_state and "ftes" in st.session_state:
+            expected_ot = st.session_state.total_fte - ot_threshold
+            if expected_ot > 0:
+                st.warning(f"⚠️ You may need **{round(expected_ot, 2)}** overtime FTEs.")
+                
+                st.markdown("#### Breakdown of Overtime by Function")
+                overtime_details = []
+                for i, (col, _) in enumerate(volume_columns):
+                    if st.session_state.ftes[i] > 0:
+                        overtime_details.append((col, round(st.session_state.hours[i], 2)))
+                ot_df = pd.DataFrame(overtime_details, columns=["Function", "Labor Hours Needed"])
+                st.dataframe(ot_df, use_container_width=True)
+            else:
+                st.success("✅ No overtime workers needed.")
+        else:
+            st.info("ℹ️ Please run a prediction first.")

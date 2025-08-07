@@ -84,25 +84,35 @@ else:
         fig = px.bar(chart_df, x="Function", y="FTE", color="Function", title="FTE by Function")
         st.plotly_chart(fig, use_container_width=True)
 
-    # Overtime Estimation
+   # Overtime Estimation
     st.markdown("---")
     st.markdown("### 🕒 Overtime Estimation")
-    ot_threshold = st.number_input("Enter FTE Threshold (e.g., 20):", min_value=0.0, value=16.0)
+    ot_threshold = st.number_input("Enter FTE Threshold (e.g., 16):", min_value=0.0, value=16.0)
 
-    if st.button("Estimate Overtime Workers"):
-        if "total_fte" in st.session_state and "ftes" in st.session_state:
-            expected_ot = st.session_state.total_fte - ot_threshold
-            if expected_ot > 0:
-                st.warning(f"⚠️ You may need **{round(expected_ot, 2)}** overtime FTEs.")
-                
-                st.markdown("#### Breakdown of Overtime by Function")
+    if st.button("Estimate Overtime Hours Needed"):
+        if "hours" in st.session_state:
+            total_hours = sum(st.session_state.hours)
+            allowed_hours = ot_threshold * 7  # productive hours per FTE
+            overtime_hours = total_hours - allowed_hours
+
+            if overtime_hours > 0:
+                st.warning(f"⚠️ Total overtime hours needed: **{round(overtime_hours, 2)}** hours (above threshold of {allowed_hours} hours)")
+
+                st.markdown("#### Breakdown of Functions Contributing to Overtime")
+                # Show functions where hours contribute proportionally to the overtime
+                # For simplicity, show all functions with hours > 0 and calculate their share of overtime:
                 overtime_details = []
                 for i, (col, _) in enumerate(volume_columns):
-                    if st.session_state.ftes[i] > 0:
-                        overtime_details.append((col, round(st.session_state.hours[i], 2)))
-                ot_df = pd.DataFrame(overtime_details, columns=["Function", "Labor Hours Needed"])
+                    func_hours = st.session_state.hours[i]
+                    # Calculate proportion of total hours this function consumes
+                    proportion = func_hours / total_hours if total_hours > 0 else 0
+                    func_overtime = proportion * overtime_hours if overtime_hours > 0 else 0
+                    if func_overtime > 0:
+                        overtime_details.append((col, round(func_overtime, 2)))
+                ot_df = pd.DataFrame(overtime_details, columns=["Function", "Overtime Hours Needed"])
                 st.dataframe(ot_df, use_container_width=True)
             else:
-                st.success("✅ No overtime workers needed.")
+                st.success("✅ No overtime hours needed. Total hours within threshold.")
         else:
             st.info("ℹ️ Please run a prediction first.")
+  

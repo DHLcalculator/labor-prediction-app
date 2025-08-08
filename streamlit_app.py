@@ -87,7 +87,7 @@ else:
    # Overtime Estimation
     st.markdown("---")
     st.markdown("### 🕒 Overtime Estimation")
-    ot_threshold = st.number_input("Enter FTE On Site (e.g., 12 on AM Shift, 26 on PM Shift):", min_value=0.0, value=0.0)
+    ot_threshold = st.number_input("Enter FTE On Site (e.g., 12 on AM Shift, 26 on PM Shift):", min_value=0, value=0)
 
     if st.button("Estimate Overtime Hours Needed"):
         if "hours" in st.session_state:

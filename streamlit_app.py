@@ -129,7 +129,7 @@ else:
                 # Calculate extra FTEs available
                 extra_fte = num_employees - predicted_fte_needed
                 # Convert FTEs to hours (7 productive hours per shift)
-                total_vto_hours = extra_fte * 7
+                total_vto_hours = extra_fte * 7.5
                 # Hours per person for VTO
                 vto_per_person = total_vto_hours / num_employees if num_employees > 0 else 0
 

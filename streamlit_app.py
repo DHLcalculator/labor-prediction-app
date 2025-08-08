@@ -115,4 +115,27 @@ else:
                 st.success("✅ No overtime hours needed. Total hours within threshold.")
         else:
             st.info("ℹ️ Please run a prediction first.")
-  
+
+    # VTO Estimation
+    st.markdown("---")
+    st.markdown("### 🏖 Voluntary Time Off (VTO) Estimation")
+
+    num_employees = st.number_input("Enter Number of Employees On Site:", min_value=0, value=0)
+
+    if st.button("Estimate VTO Hours"):
+        if "total_fte" in st.session_state:
+            predicted_fte_needed = st.session_state.total_fte
+            if num_employees > predicted_fte_needed:
+                # Calculate extra FTEs available
+                extra_fte = num_employees - predicted_fte_needed
+                # Convert FTEs to hours (7 productive hours per shift)
+                total_vto_hours = extra_fte * 7
+                # Hours per person for VTO
+                vto_per_person = total_vto_hours / num_employees if num_employees > 0 else 0
+
+                st.info(f"💡 Total VTO available: **{round(total_vto_hours, 2)}** hours")
+                st.info(f"💡 VTO per person: **{round(vto_per_person, 2)}** hours")
+            else:
+                st.success("✅ No VTO available. Staffing matches or is below predicted need.")
+        else:
+            st.info("ℹ️ Please run a prediction first.")

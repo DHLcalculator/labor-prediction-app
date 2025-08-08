@@ -44,14 +44,14 @@ else:
 
     # Labor multipliers based on updated data
     hours_per_unit = {
-        "Unloading": 0.02507,        # 9.4 / 375
-        "Receiving": 0.02500,        # 7.0 / 280
-        "Putaway": 0.05269,          # 13.7 / 260
-        "Case Picking": 0.00666,     # 43.3 / 6500
-        "Full Pallet": 0.05000,      # 14 / 280
-        "Layer Picking": 0.00400,    # 10 / 2500
-        "Loading": 0.02500,          # 12 / 480
-        "Replenishment": 0.06667     # 4 / 60
+        "Unloading": 0.025,       # 8.0 / 320
+        "Receiving": 0.025,       # 5 / 200
+        "Putaway": 0.05259,       # 7.1 / 135
+        "Case Picking": 0.00664,  # 8.3 / 1250
+        "Full Pallet": 0.05,      # 7 / 140
+        "Layer Picking": 0.004,   # 10 / 2500
+        "Loading": 0.025,         # 8 / 320
+        "Replenishment": 0.06667  # 4 / 60
     }
 
     # Predict labor
